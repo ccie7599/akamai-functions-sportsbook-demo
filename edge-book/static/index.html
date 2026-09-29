@@ -1,0 +1,619 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Edge Book on Akamai Functions</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%232FD27F%22/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #0E1621; --panel: #131E2B; --card: #16212E; --card2: #1B2838; --line: #26384A;
+    --ink: #EEF1EC; --ink2: #B9C6CF; --mute: #7D8B96;
+    --go: #2FD27F; --warn: #F2B544; --bad: #FF7A6B; --info: #6FB7FF;
+    --mono: ui-monospace, "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+    --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--sans); }
+  a { color: var(--info); }
+  .app { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; }
+  @media (max-width: 900px) { .app { grid-template-columns: 1fr; } nav { position: static !important; height: auto !important; } }
+  nav { position: sticky; top: 0; height: 100vh; overflow: auto; background: var(--panel); border-right: 1px solid var(--line); padding: 20px 14px; }
+  nav .brand { font-weight: 600; font-size: 17px; padding: 0 8px; }
+  nav .brand small { display: block; font-weight: 400; font-size: 12px; color: var(--mute); margin-top: 2px; }
+  nav ol { list-style: none; padding: 0; margin: 18px 0 0; }
+  nav li button { width: 100%; text-align: left; background: none; border: 0; color: var(--ink2); font: inherit; padding: 8px 10px; border-radius: 8px; cursor: pointer; display: flex; gap: 10px; align-items: baseline; }
+  nav li button:hover { background: var(--card); }
+  nav li button[aria-current=true] { background: var(--card2); color: var(--ink); }
+  nav li .n { font: 600 12px var(--mono); color: var(--mute); min-width: 18px; }
+  nav li .uc { display: block; font-size: 11px; color: var(--mute); }
+  nav .foot { margin-top: 18px; padding: 10px; font-size: 12px; color: var(--mute); border-top: 1px solid var(--line); }
+  main { padding: 0 32px 64px; max-width: 1280px; }
+  .topbar { position: sticky; top: 0; z-index: 5; background: rgba(14,22,33,.94); backdrop-filter: blur(6px); display: flex; gap: 10px; justify-content: flex-end; padding: 12px 0; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .stat { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 5px 12px; min-width: 128px; }
+  .stat b { display: block; font: 600 17px var(--mono); }
+  .stat span { font-size: 11px; color: var(--mute); }
+  section.ch { display: none; padding-top: 28px; }
+  section.ch.on { display: block; }
+  .eyebrow { font: 600 12px var(--mono); letter-spacing: 1.5px; text-transform: uppercase; color: var(--go); }
+  .badge { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px; font: 600 11px var(--mono); background: rgba(111,183,255,.12); color: var(--info); border: 1px solid rgba(111,183,255,.3); letter-spacing: .5px; text-transform: none; }
+  h2 { font-size: 32px; line-height: 1.15; margin: 8px 0 16px; }
+  h3 { font: 600 12px var(--mono); letter-spacing: 1.5px; text-transform: uppercase; color: var(--mute); margin: 0 0 10px; }
+  .story { background: var(--card); border: 1px solid var(--line); border-left: 3px solid var(--warn); border-radius: 10px; padding: 14px 18px; max-width: 900px; }
+  .story p { margin: 0; color: var(--ink); font-size: 16px; }
+  .story .label { font: 600 11px var(--mono); color: var(--warn); letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 4px; }
+  .explain { color: var(--ink2); max-width: 900px; margin: 14px 0; }
+  .grid2 { display: grid; grid-template-columns: 1.25fr 1fr; gap: 20px; margin-top: 18px; }
+  @media (max-width: 1100px) { .grid2 { grid-template-columns: 1fr; } }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+  .diagram { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px; margin: 16px 0 0; overflow-x: auto; }
+  .diagram svg { display: block; width: 100%; height: auto; min-width: 640px; }
+  .values { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-top: 18px; }
+  .value { background: var(--card); border: 1px solid var(--line); border-top: 3px solid var(--go); border-radius: 10px; padding: 12px 14px; }
+  .value b { display: block; font: 600 24px var(--mono); }
+  .value span { font-size: 12px; color: var(--ink2); }
+  .vhead { margin-top: 22px; }
+  label { display: block; font-size: 13px; color: var(--ink2); margin: 10px 0 4px; }
+  select, input[type=text], input[type=number] { width: 100%; background: var(--card2); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; font: inherit; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .grow { flex: 1; }
+  .btn { background: var(--card2); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px; font: inherit; cursor: pointer; }
+  .btn:hover { border-color: var(--ink2); }
+  .btn.primary { background: var(--go); color: #0E1621; border-color: var(--go); font-weight: 600; }
+  .btn.warn { border-color: var(--warn); color: var(--warn); }
+  .seg { display: flex; gap: 6px; flex-wrap: wrap; }
+  .seg button[aria-pressed=true] { border-color: var(--go); color: var(--go); }
+  pre, code { font-family: var(--mono); font-size: 12.5px; }
+  pre { background: #0A111A; border: 1px solid var(--line); border-radius: 10px; padding: 12px; overflow: auto; max-height: 420px; margin: 0; color: #D5DEE4; }
+  details { margin-top: 18px; }
+  details summary { cursor: pointer; color: var(--ink2); font-size: 14px; }
+  .kv { display: grid; grid-template-columns: 130px 1fr; gap: 4px 10px; font-size: 14px; }
+  .kv div:nth-child(odd) { color: var(--mute); }
+  .kv div:nth-child(even) { font-family: var(--mono); word-break: break-all; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 5px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--mute); font-weight: 500; }
+  td.m { font-family: var(--mono); }
+  .ok { color: var(--go); } .no { color: var(--bad); } .wr { color: var(--warn); }
+  .muted { color: var(--mute); font-size: 12px; }
+  .event { border-top: 1px solid var(--line); padding: 10px 0; }
+  .event:first-child { border-top: 0; }
+  .ehead { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+  .tag { font: 600 11px var(--mono); padding: 1px 6px; border-radius: 5px; background: var(--card2); color: var(--ink2); margin-right: 6px; }
+  .live { color: var(--go); font: 600 12px var(--mono); }
+  .pre { color: var(--mute); font: 12px var(--mono); }
+  .markets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .market { position: relative; }
+  .market h4 { font-size: 11px; color: var(--mute); margin: 0 0 4px; font-weight: 500; }
+  .sels { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+  .sel { background: var(--card2); border: 1px solid var(--line); border-radius: 7px; padding: 5px 7px; text-align: left; color: var(--ink); cursor: pointer; font: inherit; min-width: 0; }
+  .sel:hover { border-color: var(--ink2); }
+  .sel .nm { font-size: 11px; color: var(--ink2); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sel .p { font: 600 14px var(--mono); }
+  .sel .old { font: 11px var(--mono); color: var(--mute); text-decoration: line-through; margin-right: 3px; }
+  .sel.boosted { border-color: var(--warn); } .sel.boosted .p { color: var(--warn); }
+  .sel.picked { outline: 2px solid var(--info); }
+  .bnote { font-size: 11px; color: var(--warn); margin-top: 3px; }
+  .susp { position: absolute; inset: 16px 0 0 0; background: rgba(14,22,33,.84); border: 1px dashed var(--bad); border-radius: 7px; display: flex; align-items: center; justify-content: center; font: 600 11px var(--mono); color: var(--bad); }
+  .promos { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .promo { background: var(--card2); border: 1px solid var(--line); border-left: 3px solid var(--warn); border-radius: 8px; padding: 6px 10px; font-size: 13px; }
+  .promo span { display: block; font-size: 11px; color: var(--mute); }
+  .decision { font: 600 15px var(--mono); padding: 8px 12px; border-radius: 8px; margin: 8px 0; }
+  .d-accept_fast { background: rgba(47,210,127,.15); color: var(--go); }
+  .d-accept_standard { background: rgba(185,198,207,.12); color: var(--ink2); }
+  .d-trader_review { background: rgba(242,181,68,.15); color: var(--warn); }
+  .d-reject { background: rgba(255,122,107,.15); color: var(--bad); }
+  .bar { position: relative; height: 10px; background: var(--card2); border-radius: 5px; margin: 6px 0 18px; }
+  .bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 5px; background: var(--ink2); }
+  .bar em { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--mute); }
+  .bar em span { position: absolute; top: 14px; left: -12px; font: 10px var(--mono); color: var(--mute); font-style: normal; }
+  .mix { display: flex; height: 26px; border-radius: 6px; overflow: hidden; gap: 2px; margin: 8px 0; }
+  .mix div { display: flex; align-items: center; justify-content: center; font: 600 11px var(--mono); color: #0E1621; min-width: 2px; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--ink2); }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+  .token { font-family: var(--mono); font-size: 12px; word-break: break-all; background: #0A111A; border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
+  .token .pl { color: var(--info); } .token .sg { color: var(--warn); }
+  .nextprev { display: flex; justify-content: space-between; margin-top: 30px; }
+  .chart { width: 100%; height: 220px; display: block; }
+  .kbd { font: 11px var(--mono); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; }
+</style>
+</head>
+<body>
+<div class="app">
+<nav>
+  <div class="brand">Edge Book<small>A sportsbook request path on Akamai Functions</small></div>
+  <ol id="toc"></ol>
+  <div class="foot">Synthetic data. Every panel calls the live Function. Use <span class="kbd">←</span> <span class="kbd">→</span> to move between chapters.</div>
+</nav>
+<main>
+  <div class="topbar">
+    <div class="stat"><b id="fnus">–</b><span>time inside the Function</span></div>
+    <div class="stat"><b id="seq">–</b><span>requests on this instance</span></div>
+    <div class="stat"><b id="rtt">–</b><span>round trip from this browser</span></div>
+    <div class="stat"><b id="reqs">0</b><span>requests this session</span></div>
+  </div>
+
+  <!-- 0 -->
+  <section class="ch" data-title="One request path" data-uc="Overview">
+    <div class="eyebrow">Overview</div>
+    <h2>One request path, one Function</h2>
+    <div class="story"><div class="label">The business problem</div>
+      <p>A sportsbook's busiest moments are unpredictable and brutal: kickoff, a goal, a promo going viral. Every one of those requests needs logic (who is this, where are they, what can they see, is this bet safe) before it touches the core platform. Today that logic lives in regional servers that have to be sized for the peak.</p></div>
+    <p class="explain">This demo puts that logic on the request path instead. A single WebAssembly component runs on Akamai Functions and handles every route: the page you are looking at, redirects, personalization, bot handling, signed quotes and pre-trade risk scoring. Each chapter starts with the business problem, shows it running live, then confirms the value with a number measured on the spot.</p>
+    <div class="diagram" id="dg-overview"></div>
+    <div class="values">
+      <div class="value"><b>1</b><span>WebAssembly component serving everything</span></div>
+      <div class="value"><b id="ov-routes">–</b><span>routes, UI and API</span></div>
+      <div class="value"><b>0</b><span>servers or containers to size</span></div>
+      <div class="value"><b id="ov-fn">–</b><span>time inside the Function for this page's health check</span></div>
+    </div>
+  </section>
+
+  <!-- 1 -->
+  <section class="ch" data-title="The bettor arrives" data-uc="Mass redirects at global scale">
+    <div class="eyebrow">Chapter 1 <span class="badge">Use case: Mass redirects</span></div>
+    <h2>The bettor arrives through one of 100,000 links</h2>
+    <div class="story"><div class="label">The business problem</div>
+      <p>Customers arrive through podcast codes, affiliate links, QR codes on TV and printed ads, old bookmarked URLs, and a front door that has to send them to the right state's site. Each one is a redirect. On a big weekend that is millions of requests that do nothing but look up a destination, and none of them should cost an origin round trip.</p></div>
+    <p class="explain">The Function holds a 100,000-entry campaign table compiled into the component, plus legacy URL rules and jurisdiction routing. A lookup is a binary search in memory. Offers that differ by state get a state-specific landing page automatically.</p>
+    <div class="diagram" id="dg-redirect"></div>
+    <div class="grid2">
+      <div class="panel">
+        <h3>Try it</h3>
+        <label>Path the customer requested</label>
+        <div class="row"><input type="text" id="rd-path" class="grow" value="/"><button class="btn primary" id="rd-go">Resolve</button></div>
+        <label>Customer location</label>
+        <select id="rd-state"><option>NJ</option><option>NY</option><option>PA</option><option>MI</option><option>IL</option><option>MA</option><option>AZ</option><option>OH</option></select>
+        <p class="muted" style="margin:10px 0 4px">Real codes from the table:</p>
+        <div class="row" id="rd-samples"></div>
+        <div class="row" style="margin-top:6px"><button class="btn" data-p="/sportsbook/leagues/nfl">legacy: /sportsbook/leagues/nfl</button><button class="btn" data-p="/betslip/share/8812">legacy: /betslip/share/8812</button><button class="btn" data-p="/">front door: /</button></div>
+      </div>
+      <div class="panel">
+        <h3>Result</h3>
+        <div class="kv" id="rd-out"><div>status</div><div>–</div></div>
+        <p class="muted" style="margin-top:12px">Try it from a terminal: <code id="rd-curl"></code></p>
+      </div>
+    </div>
+    <div class="values">
+      <div class="value"><b id="rd-size">–</b><span>campaign codes in the Function</span></div>
+      <div class="value"><b id="rd-ns">–</b><span>lookup time for this redirect</span></div>
+      <div class="value"><b id="rd-fn">–</b><span>total time inside the Function</span></div>
+      <div class="value"><b>0</b><span>origin requests to redirect</span></div>
+    </div>
+    <details><summary>The code: redirects.rs and the table generator</summary><pre data-src="redirects.rs"></pre></details>
+  </section>
+
+  <!-- 2 -->
+  <section class="ch" data-title="The board they see" data-uc="Hyper-personalization">
+    <div class="eyebrow">Chapter 2 <span class="badge">Use case: Hyper-personalization</span></div>
+    <h2>Every bettor sees their own sportsbook</h2>
+    <div class="story"><div class="label">The business problem</div>
+      <p>A new customer, a VIP and someone who hasn't bet in two months should not see the same page. Their favorite team belongs at the top, offers depend on segment and on what their state allows, and a boosted price has to be sized to live risk: a boost is a price the book chooses to give away, and giving it away on a price that moved five points ten seconds ago is how a promotion turns into a liability.</p></div>
+    <p class="explain">On every request the Function builds this customer's board from the book: favorite team first, promotions filtered by segment and jurisdiction, and a profit boost that trims itself when the featured price is moving and pauses while the market is suspended. Nothing is cached per user, so there is nothing to invalidate when prices move.</p>
+    <div class="diagram" id="dg-personal"></div>
+    <div class="grid2">
+      <div class="panel">
+        <h3>The customer's board (refreshes every second)</h3>
+        <div class="promos" id="pz-promos"></div>
+        <div id="pz-board"></div>
+      </div>
+      <div class="panel">
+        <h3>Who is asking</h3>
+        <label>Segment</label>
+        <div class="seg" id="pz-seg"><button class="btn" data-v="casual" aria-pressed="true">Casual</button><button class="btn" data-v="new" aria-pressed="false">New</button><button class="btn" data-v="vip" aria-pressed="false">VIP</button><button class="btn" data-v="lapsed" aria-pressed="false">Lapsed</button></div>
+        <label>Jurisdiction</label>
+        <select id="pz-state"><option>NJ</option><option>NY</option><option>PA</option><option>MI</option><option>IL</option><option>MA</option><option>AZ</option><option>OH</option></select>
+        <label>Favorite team</label>
+        <select id="pz-fav"><option value="">None</option><option>Lions</option><option>Bears</option><option>Chiefs</option><option>Bills</option><option>Dodgers</option><option>Padres</option></select>
+        <p class="muted" style="margin-top:12px">Try: New + Lions, then switch NJ → NY and watch the welcome offer change. Watch the boost note on the featured price as it moves.</p>
+      </div>
+    </div>
+    <div class="values">
+      <div class="value"><b id="pz-variants">0</b><span>distinct boards built this session</span></div>
+      <div class="value"><b id="pz-fn">–</b><span>to build this board inside the Function</span></div>
+      <div class="value"><b id="pz-boost">–</b><span>boost offered vs base, sized to live risk</span></div>
+      <div class="value"><b>0</b><span>per-user cache entries to invalidate</span></div>
+    </div>
+    <details><summary>The code: personalize.rs</summary><pre data-src="personalize.rs"></pre></details>
+  </section>
+
+  <!-- 3 -->
+  <section class="ch" data-title="Who else is looking" data-uc="Bot misdirect">
+    <div class="eyebrow">Chapter 3 <span class="badge">Use case: Bot misdirect</span></div>
+    <h2>Scrapers get prices that look right and aren't</h2>
+    <div class="story"><div class="label">The business problem</div>
+      <p>Odds screens, arbitrage bots and competitors scrape prices around the clock. Blocking them tells them to rotate IPs and try again. What costs them is data that looks perfectly normal and is quietly wrong, so their arbitrage math loses money and nothing tells them they've been caught.</p></div>
+    <p class="explain">When a request is classified as automated, the Function serves the same board with every price shifted by a small, stable amount, some lines nudged half a point, and suspended markets shown as open. The noise is keyed to the scraper's fingerprint and a 30-second window, so repeated requests agree and can't be averaged out. In production the verdict comes from Akamai's bot detection; this demo uses simple signals so you can reproduce it with curl.</p>
+    <div class="diagram" id="dg-bot"></div>
+    <div class="panel" style="margin-top:18px">
+      <h3>Customer vs scraper, same moment</h3>
+      <p class="muted" id="bt-signals"></p>
+      <table><thead><tr><th>Selection</th><th>Customer sees</th><th>Scraper sees</th><th>Difference</th></tr></thead><tbody id="bt-rows"></tbody></table>
+      <p class="muted" style="margin-top:10px">Reproduce: <code>curl -s -A 'python-requests/2.31' <span class="origin"></span>/api/board</code></p>
+    </div>
+    <div class="values">
+      <div class="value"><b id="bt-altered">–</b><span>of prices altered for the scraper</span></div>
+      <div class="value"><b id="bt-err">–</b><span>average price error (American odds points)</span></div>
+      <div class="value"><b id="bt-susp">–</b><span>suspended markets shown to it as open</span></div>
+      <div class="value"><b>0</b><span>blocks: no signal to rotate on</span></div>
+    </div>
+    <details><summary>The code: scraper.rs</summary><pre data-src="scraper.rs"></pre></details>
+  </section>
+
+  <!-- 4 -->
+  <section class="ch" data-title="The price they lock" data-uc="Token management">
+    <div class="eyebrow">Chapter 4 <span class="badge">Use case: Token management</span></div>
+    <h2>Every quote is signed, and verified before it goes anywhere</h2>
+    <div class="story"><div class="label">The business problem</div>
+      <p>A bet slip carries a price. If the client can edit that price, or replay a quote from a minute ago after the line moved, the book pays for it. The quote needs to be issued and checked where the request arrives, in microseconds, without a round trip to the core.</p></div>
+    <p class="explain">When a customer picks a price, the Function signs exactly what was quoted (selection, price, price version, 30-second expiry) with HMAC-SHA256. The pre-check trusts only what the signature covers. The same pattern works for stream tickets, session tokens and signed URLs.</p>
+    <div class="diagram" id="dg-token"></div>
+    <div class="grid2">
+      <div class="panel">
+        <h3>1 · Pick a price</h3>
+        <div id="tk-board"></div>
+      </div>
+      <div class="panel">
+        <h3>2 · The signed quote</h3>
+        <div id="tk-quote" class="muted">Pick any price on the left.</div>
+        <div class="row" style="margin-top:12px">
+          <button class="btn primary" id="tk-valid" disabled>Submit as quoted</button>
+          <button class="btn warn" id="tk-tamper" disabled>Tamper: raise the price</button>
+        </div>
+        <div id="tk-result"></div>
+      </div>
+    </div>
+    <div class="values">
+      <div class="value"><b id="tk-issue">–</b><span>to issue and sign the quote</span></div>
+      <div class="value"><b id="tk-verify">–</b><span>to verify and check the slip</span></div>
+      <div class="value"><b id="tk-ttl">30 s</b><span>quote lifetime, enforced at the edge</span></div>
+      <div class="value"><b>0</b><span>tampered slips that reach the core</span></div>
+    </div>
+    <details><summary>The code: token.rs</summary><pre data-src="token.rs"></pre></details>
+  </section>
+
+  <!-- 5 -->
+  <section class="ch" data-title="The bet they place" data-uc="AI inference">
+    <div class="eyebrow">Chapter 5 <span class="badge">Use case: AI inference</span></div>
+    <h2>Every bet is scored by the operator's own model before it leaves the edge</h2>
+    <div class="story"><div class="label">The business problem</div>
+      <p>Live bets usually carry a fixed acceptance delay to protect the book from bettors who see the play before the price moves. Every customer pays that delay, including the vast majority who are harmless. Scoring each slip as it arrives lets harmless bets through immediately and saves the delay, and the trader's attention, for the ones that need it.</p></div>
+    <p class="explain">The pre-check verifies the signed quote, rejects stale prices, suspended markets and over-limit stakes, then scores the slip with a small model: stake relative to the bettor's normal, sharpness, quote age, in-play, betting velocity. The model here is a stand-in loaded from a JSON weights file; in production it is the operator's own tuned open-weight model. Acceptance still happens on the regulated platform; the ticket just arrives already scored.</p>
+    <div class="diagram" id="dg-ai"></div>
+    <div class="grid2">
+      <div class="panel">
+        <h3>One slip</h3>
+        <p class="muted" id="ai-slip">Uses the price you picked in chapter 4 (or a live price if you skipped it).</p>
+        <label>Bettor profile (model inputs)</label>
+        <select id="ai-prof"><option value="rec">Recreational: steady $25 stakes</option><option value="spike">Stake spike: usually $25, 3 bets in 10 min</option><option value="sharp">Sharp: beats the closing line</option></select>
+        <label>Stake ($)</label><input type="number" id="ai-stake" value="40" min="1">
+        <div class="row" style="margin-top:10px"><button class="btn primary" id="ai-go">Score this slip</button></div>
+        <div id="ai-result"></div>
+      </div>
+      <div class="panel">
+        <h3>A thousand slips</h3>
+        <p class="muted">A mixed population: 70% recreational, 15% stake spikes, 10% sharp, 5% holding a stale quote. All scored inside one Function call.</p>
+        <button class="btn primary" id="ai-batch">Score 1,000 slips</button>
+        <div id="ai-batch-out"></div>
+      </div>
+    </div>
+    <div class="values">
+      <div class="value"><b id="ai-us">–</b><span>model time per slip</span></div>
+      <div class="value"><b id="ai-fast">–</b><span>of slips accepted with no delay</span></div>
+      <div class="value"><b id="ai-review">–</b><span>sent to a trader</span></div>
+      <div class="value"><b id="ai-rej">–</b><span>rejected at the edge</span></div>
+    </div>
+    <details><summary>The code: risk.rs and the model file</summary><pre data-src="risk.rs"></pre><pre data-src="risk-stand-in-v1.json" style="margin-top:8px"></pre></details>
+  </section>
+
+  <!-- 6 -->
+  <section class="ch" data-title="It was all one Function" data-uc="Full-stack application">
+    <div class="eyebrow">Chapter 6 <span class="badge">Use case: Full-stack application</span></div>
+    <h2>Everything you just used was one Function</h2>
+    <div class="story"><div class="label">The business problem</div>
+      <p>New features usually mean new services: something to deploy, scale, patch and pay for at peak. The question is how much of the application can live on the request path as a single deployable unit, with no servers behind it.</p></div>
+    <p class="explain">The page, nine routes, a 100,000-entry redirect table, token signing and a risk model are one WebAssembly component, deployed with one command. Its source is served by the component itself, so what you read is what is running. Hit every route below and watch the timings.</p>
+    <div class="diagram" id="dg-full"></div>
+    <div class="grid2">
+      <div class="panel"><h3>Every route, called now</h3><button class="btn primary" id="fs-go">Call every route</button><table style="margin-top:10px"><thead><tr><th>Route</th><th>Status</th><th>In Function</th><th>Round trip</th></tr></thead><tbody id="fs-rows"></tbody></table></div>
+      <div class="panel"><h3>Build and deploy</h3><pre>spin build
+spin aka deploy --variable quote_signing_key=$(openssl rand -hex 32)</pre><p class="muted" style="margin-top:10px">Component build: <span id="fs-build">–</span></p><label>Read the running source</label><select id="fs-src"></select><pre id="fs-code" style="margin-top:8px"></pre></div>
+    </div>
+    <div class="values">
+      <div class="value"><b>1</b><span>deployable unit</span></div>
+      <div class="value"><b id="fs-routes">–</b><span>routes it serves</span></div>
+      <div class="value"><b id="fs-max">–</b><span>slowest route, time inside the Function</span></div>
+      <div class="value"><b>0</b><span>servers, images or scaling policies</span></div>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section class="ch" data-title="Zero penalty for cold traffic" data-uc="Performance">
+    <div class="eyebrow">Chapter 7 <span class="badge">Platform: cold starts</span></div>
+    <h2>Zero penalty for cold traffic</h2>
+    <div class="story"><div class="label">The business problem</div>
+      <p>Serverless platforms usually keep warm instances around and charge a start-up delay when traffic arrives that no warm instance can take: the first requests after a deploy, a quiet region waking up, a spike beyond what's warm. On a game day, those are exactly the requests that matter.</p></div>
+    <p class="explain">Akamai Functions creates a fresh WebAssembly sandbox for every request. The component keeps a request counter in memory; a counter that starts at zero in every new instance and reads 1 on every response means every request you send ran in a brand-new instance. If starting an instance cost anything noticeable, every request would pay it. Send a burst and look.</p>
+    <div class="diagram" id="dg-cold"></div>
+    <div class="panel" style="margin-top:18px">
+      <div class="row"><h3 class="grow" style="margin:0">Fifty sequential requests</h3><button class="btn primary" id="cs-go">Send 50 requests</button></div>
+      <svg class="chart" id="cs-chart" viewBox="0 0 1000 220" preserveAspectRatio="none" aria-label="Round trip per request"></svg>
+      <p class="muted" id="cs-note">Each bar is one request's round trip from this browser. Hover a bar for its instance counter and time inside the Function.</p>
+    </div>
+    <div class="values">
+      <div class="value"><b id="cs-fresh">–</b><span>of requests served by a brand-new instance</span></div>
+      <div class="value"><b id="cs-first">–</b><span>first request's round trip</span></div>
+      <div class="value"><b id="cs-p50">–</b><span>median round trip</span></div>
+      <div class="value"><b id="cs-fn">–</b><span>median time inside the Function</span></div>
+    </div>
+    <p class="muted" style="margin-top:14px">Round trip includes the network between this browser and the nearest Functions region. Measured right after a fresh deploy with scripts/bench-cold.sh (new TLS connection per request, from Chicago): 100 of 100 requests on a brand-new instance; the first request the new deployment ever served took 52 ms to first byte, inside the 41–59 ms p50–p95 of the other 99. Details in docs/measurements.md.</p>
+  </section>
+
+  <!-- 8 -->
+  <section class="ch" data-title="Streams and sockets" data-uc="Transport">
+    <div class="eyebrow">Chapter 8 <span class="badge">Architecture: real-time transport</span></div>
+    <h2>Functions handle the request; a stream tier holds the connection</h2>
+    <div class="story"><div class="label">The business problem</div>
+      <p>Live odds reach customers over WebSocket and Server-Sent Events: long-lived connections that stay open for the whole game. By default a CDN opens one origin connection for every client connection, so the servers holding those streams carry every open socket.</p></div>
+    <p class="explain">Functions are request and response. They decide who may connect and what they may see: the signed-token pattern from chapter 4 becomes a stream ticket. A stream tier on Akamai cloud, one on-net hop from the CDN edge, holds the long-lived connections and carries the bytes. This demo refreshes its board by polling once a second, which is a legitimate pattern for a one-second board; the stream tier is what you add for tick-by-tick updates.</p>
+    <div class="diagram" id="dg-stream"></div>
+  </section>
+
+  <!-- 9 -->
+  <section class="ch" data-title="Build it yourself" data-uc="Repository">
+    <div class="eyebrow">Build it yourself</div>
+    <h2>Everything here is open source and reproducible</h2>
+    <p class="explain">The repository has the component, the table generator, the stand-in model, the benchmark scripts and a walkthrough of each use case.</p>
+    <div class="panel">
+      <h3>Repository</h3>
+      <p><a id="repo" href="https://github.com/ccie7599/akamai-functions-sportsbook-demo" target="_blank" rel="noopener">github.com/ccie7599/akamai-functions-sportsbook-demo</a></p>
+      <pre>git clone https://github.com/ccie7599/akamai-functions-sportsbook-demo
+cd akamai-functions-sportsbook-demo
+spin build && spin up                       # local, http://127.0.0.1:3000
+spin aka login
+spin aka deploy --variable quote_signing_key=$(openssl rand -hex 32)</pre>
+    </div>
+  </section>
+
+  <div class="nextprev"><button class="btn" id="prev">← Previous</button><button class="btn" id="next">Next →</button></div>
+</main>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const fmt = (p, f) => f === "cents" ? `${p}¢` : (p > 0 ? `+${p}` : `${p}`);
+const us = (v) => v == null ? "–" : (v >= 1000 ? `${(v / 1000).toFixed(1)} ms` : `${v} µs`);
+const S = { reqs: 0, chapter: 0, seg: "casual", state: "NJ", fav: "", variants: new Set(), quote: null, board: null, meta: null, last: {} };
+document.querySelectorAll(".origin").forEach(e => e.textContent = location.origin);
+
+async function call(url, opts) {
+  const t = performance.now();
+  const r = await fetch(url, opts);
+  const rtt = performance.now() - t;
+  const fn = Number(r.headers.get("x-fn-us"));
+  const seq = r.headers.get("x-instance-seq");
+  S.reqs++;
+  $("reqs").textContent = S.reqs; $("fnus").textContent = us(fn); $("seq").textContent = seq ?? "–"; $("rtt").textContent = `${Math.round(rtt)} ms`;
+  const ct = r.headers.get("content-type") || "";
+  const body = ct.includes("json") ? await r.json() : await r.text();
+  return { body, fn, seq: Number(seq), rtt, status: r.status };
+}
+
+/* ---------- diagrams: one row of boxes joined by arrows ---------- */
+function flow(el, nodes, caption) {
+  const n = nodes.length, W = 1000, bw = Math.min(190, (W - 40 - (n - 1) * 40) / n), gap = (W - n * bw) / (n + 1);
+  let x = gap, parts = [];
+  nodes.forEach((nd, i) => {
+    const hi = nd.hi ? "#2FD27F" : "#26384A", fill = nd.hi ? "#12281F" : "#16212E";
+    parts.push(`<rect x="${x}" y="20" width="${bw}" height="96" rx="12" fill="${fill}" stroke="${hi}" stroke-width="${nd.hi ? 2 : 1}"/>`);
+    parts.push(`<text x="${x + bw / 2}" y="54" text-anchor="middle" fill="#EEF1EC" font-size="17" font-weight="600" font-family="system-ui, sans-serif">${esc(nd.t)}</text>`);
+    (nd.s || "").split("|").forEach((line, j) => parts.push(`<text x="${x + bw / 2}" y="${78 + j * 18}" text-anchor="middle" fill="#B9C6CF" font-size="13" font-family="system-ui, sans-serif">${esc(line)}</text>`));
+    if (i < n - 1) { const ax = x + bw + 6, bx = x + bw + gap - 6; parts.push(`<line x1="${ax}" y1="68" x2="${bx - 8}" y2="68" stroke="#7D8B96" stroke-width="2"/><path d="M ${bx - 10} 62 L ${bx} 68 L ${bx - 10} 74 Z" fill="#7D8B96"/>`); if (nd.edge) parts.push(`<text x="${(ax + bx) / 2}" y="58" text-anchor="middle" fill="#7D8B96" font-size="11" font-family="ui-monospace, monospace">${esc(nd.edge)}</text>`); }
+    x += bw + gap;
+  });
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${caption ? 160 : 136}" role="img" aria-label="${esc(caption || nodes.map(n => n.t).join(" to "))}">${parts.join("")}${caption ? `<text x="${W / 2}" y="148" text-anchor="middle" fill="#7D8B96" font-size="13" font-family="system-ui, sans-serif">${esc(caption)}</text>` : ""}</svg>`;
+}
+flow($("dg-overview"), [{ t: "Bettor", s: "web or app" }, { t: "Akamai CDN", s: "TLS, WAF, bot|detection", edge: "HTTPS" }, { t: "Akamai Functions", s: "one WASM component|every route", hi: 1 }, { t: "Data sources", s: "KV, databases, APIs,|object storage" }], "The Function sits on the request path; the core platform only sees what survives it.");
+flow($("dg-redirect"), [{ t: "Campaign link", s: "/go/7D9YWB7B" }, { t: "Function", s: "binary search in|100,000 compiled codes", hi: 1 }, { t: "302 Location", s: "state-specific|landing page" }], "No origin, no database, no network call: the table is part of the component.");
+flow($("dg-personal"), [{ t: "Request", s: "segment, state,|favorite team" }, { t: "Function", s: "order, promos,|boost sizing", hi: 1 }, { t: "Book", s: "live prices|(any source)" }, { t: "Their board", s: "built for this|request only" }]);
+flow($("dg-bot"), [{ t: "Request", s: "customer or|scraper?" }, { t: "Bot verdict", s: "Akamai bot detection|(heuristics here)" }, { t: "Function", s: "real board, or|poisoned board", hi: 1 }, { t: "Response", s: "looks identical|either way" }]);
+flow($("dg-token"), [{ t: "Pick a price", s: "POST /api/quote" }, { t: "Function signs", s: "HMAC-SHA256|30 s expiry", hi: 1 }, { t: "Bet slip", s: "carries the|signed quote" }, { t: "Function verifies", s: "before anything|else runs", hi: 1 }]);
+flow($("dg-ai"), [{ t: "Bet slip", s: "signed quote,|stake, bettor" }, { t: "Checks", s: "signature, market,|price, limits", hi: 1 }, { t: "Model", s: "open-weight,|in the Function", hi: 1 }, { t: "Regulated platform", s: "receives a|scored ticket" }], "Acceptance stays on the regulated platform; only the decision about delay and review moves forward.");
+flow($("dg-full"), [{ t: "UI", s: "this page" }, { t: "APIs", s: "9 routes" }, { t: "Data", s: "100k redirects|model weights" }, { t: "One component", s: "spin aka deploy", hi: 1 }]);
+flow($("dg-cold"), [{ t: "Request", s: "any time,|any region" }, { t: "New sandbox", s: "created for this|request", hi: 1 }, { t: "Handler runs", s: "microseconds" }, { t: "Sandbox gone", s: "nothing to keep|warm" }]);
+flow($("dg-stream"), [{ t: "Bettor", s: "WebSocket / SSE" }, { t: "Akamai CDN", s: "one socket per|client by default" }, { t: "Functions", s: "issue stream ticket,|personalize", hi: 1, edge: "ticket" }, { t: "Stream tier", s: "Akamai cloud, one|on-net hop" }], "Functions decide who connects and what they see; the stream tier holds the connection.");
+
+/* ---------- navigation ---------- */
+const chapters = [...document.querySelectorAll("section.ch")];
+$("toc").innerHTML = chapters.map((c, i) => `<li><button data-i="${i}"><span class="n">${i}</span><span>${esc(c.dataset.title)}<span class="uc">${esc(c.dataset.uc)}</span></span></button></li>`).join("");
+function show(i) {
+  S.chapter = Math.max(0, Math.min(chapters.length - 1, i));
+  chapters.forEach((c, j) => c.classList.toggle("on", j === S.chapter));
+  document.querySelectorAll("#toc button").forEach((b, j) => b.setAttribute("aria-current", j === S.chapter));
+  history.replaceState(null, "", `#${S.chapter}`);
+  window.scrollTo(0, 0);
+  enter(S.chapter);
+}
+$("toc").onclick = (e) => { const b = e.target.closest("button"); if (b) show(Number(b.dataset.i)); };
+$("prev").onclick = () => show(S.chapter - 1); $("next").onclick = () => show(S.chapter + 1);
+document.addEventListener("keydown", (e) => { if (["INPUT", "SELECT", "TEXTAREA"].includes(e.target.tagName)) return; if (e.key === "ArrowRight") show(S.chapter + 1); if (e.key === "ArrowLeft") show(S.chapter - 1); });
+
+/* source viewers */
+async function loadSources(root) { for (const pre of root.querySelectorAll("pre[data-src]")) if (!pre.dataset.loaded) { pre.textContent = (await call(`/src/${pre.dataset.src}`)).body; pre.dataset.loaded = 1; } }
+document.querySelectorAll("details").forEach(d => d.addEventListener("toggle", () => d.open && loadSources(d)));
+
+/* ---------- shared board rendering ---------- */
+function selBtn(s, suspended, opts = {}) {
+  const b = s.boost && s.boost.pct > 0;
+  const line = s.line !== undefined ? ` ${s.line > 0 ? "+" : ""}${s.line}` : "";
+  const price = b ? `<span class="old">${fmt(s.price, s.fmt)}</span>${fmt(s.boost.price, s.fmt)}` : fmt(s.price, s.fmt);
+  return `<button class="sel ${b ? "boosted" : ""} ${opts.picked === s.id ? "picked" : ""}" data-id="${s.id}" ${suspended ? "disabled" : ""}><span class="nm">${esc(s.name)}${line}</span><span class="p">${price}</span>${opts.notes && s.boost ? `<div class="bnote">${esc(s.boost.reason)}</div>` : ""}</button>`;
+}
+function renderBoard(el, data, opts = {}) {
+  el.innerHTML = data.events.map(e => `<div class="event"><div class="ehead"><div><span class="tag">${esc(e.league)}</span><b>${esc(e.name)}</b></div><span class="${e.status === "live" ? "live" : "pre"}">${e.status === "live" ? "● " : ""}${esc(e.clock)}</span></div>
+    <div class="markets" style="${e.kind === "contract" ? "grid-template-columns:1fr" : ""}">${e.markets.map(m => `<div class="market"><h4>${esc(m.name)}</h4><div class="sels">${m.selections.map(s => selBtn(s, m.suspended, opts)).join("")}</div>${m.suspended ? `<div class="susp">SUSPENDED</div>` : ""}</div>`).join("")}</div></div>`).join("");
+}
+function allSels(data) { const out = {}; for (const e of data.events) for (const m of e.markets) for (const s of m.selections) out[s.id] = { e, m, s }; return out; }
+
+/* ---------- 0 overview ---------- */
+async function ovEnter() { const [m, h] = await Promise.all([call("/api/meta"), call("/api/health")]); S.meta = m.body; $("ov-routes").textContent = m.body.routes.length; $("ov-fn").textContent = us(h.fn); }
+
+/* ---------- 1 redirects ---------- */
+async function rdResolve() {
+  const path = $("rd-path").value.trim() || "/", state = $("rd-state").value;
+  const r = await call(`/api/redirect?path=${encodeURIComponent(path)}&state=${state}&explain=1`);
+  const d = r.body;
+  $("rd-out").innerHTML = `<div>status</div><div class="${d.status < 400 ? "ok" : "no"}">${d.status}</div><div>rule matched</div><div>${esc(d.matched)}</div><div>location</div><div>${esc(d.location || "–")}</div><div>detail</div><div>${esc(d.detail)}</div>`;
+  $("rd-ns").textContent = d.lookup_ns >= 1000 ? `${(d.lookup_ns / 1000).toFixed(1)} µs` : `${d.lookup_ns} ns`;
+  $("rd-fn").textContent = us(r.fn); $("rd-size").textContent = d.table_size.toLocaleString();
+  $("rd-curl").textContent = path.startsWith("/go/") ? `curl -sI '${location.origin}${path}?state=${state}'` : `curl -s '${location.origin}/api/redirect?path=${path}&state=${state}'`;
+}
+async function rdEnter() {
+  if (!S.meta) S.meta = (await call("/api/meta")).body;
+  $("rd-samples").innerHTML = S.meta.redirect_samples.slice(0, 5).map(c => `<button class="btn" data-p="/go/${c}">/go/${c}</button>`).join("");
+  if (!$("rd-path").dataset.init) { $("rd-path").value = `/go/${S.meta.redirect_samples[1]}`; $("rd-path").dataset.init = 1; }
+  rdResolve();
+}
+$("rd-go").onclick = rdResolve; $("rd-state").onchange = rdResolve;
+document.querySelector('section.ch:nth-of-type(2)').addEventListener("click", (e) => { const b = e.target.closest("button[data-p]"); if (b) { $("rd-path").value = b.dataset.p; rdResolve(); } });
+
+/* ---------- 2 personalization ---------- */
+async function pzTick() {
+  const p = new URLSearchParams({ segment: S.seg, state: S.state }); if (S.fav) p.set("fav", S.fav);
+  const r = await call(`/api/board?${p}`); const d = r.body; S.board = d;
+  S.variants.add(`${S.seg}|${S.state}|${S.fav}`); $("pz-variants").textContent = S.variants.size; $("pz-fn").textContent = us(r.fn);
+  $("pz-promos").innerHTML = (d.promos || []).map(x => `<div class="promo">${esc(x.title)}<span>${esc(x.detail)}</span></div>`).join("");
+  renderBoard($("pz-board"), d, { notes: true });
+  const boosted = Object.values(allSels(d)).find(x => x.s.boost);
+  $("pz-boost").textContent = boosted ? `${boosted.s.boost.pct}% / ${boosted.s.boost.base_pct}%` : "none for this segment";
+}
+$("pz-seg").onclick = (e) => { const b = e.target.closest("button"); if (!b) return; S.seg = b.dataset.v; $("pz-seg").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b)); pzTick(); };
+$("pz-state").onchange = (e) => { S.state = e.target.value; pzTick(); };
+$("pz-fav").onchange = (e) => { S.fav = e.target.value; pzTick(); };
+
+/* ---------- 3 bot misdirect ---------- */
+async function btTick() {
+  const [c, s] = await Promise.all([call("/api/board"), call("/api/board?view=scraper&debug=1")]);
+  const cust = allSels(c.body); let altered = 0, total = 0, errSum = 0, errN = 0, susp = 0, rows = [];
+  for (const [id, x] of Object.entries(allSels(s.body))) {
+    const k = cust[id]; if (!k) continue; total++;
+    const d = x.s.price - k.s.price, ld = x.s.line !== undefined && x.s.line !== k.s.line;
+    if (d !== 0 || ld) altered++;
+    if (k.s.fmt === "american") { errSum += Math.abs(d); errN++; }
+    if (k.m.suspended && !x.m.suspended) susp++;
+    if (rows.length < 12) rows.push(`<tr><td>${esc(k.e.name.split(" @ ").pop())} · ${esc(k.s.name)}${k.s.line !== undefined ? " " + k.s.line : ""}</td><td class="m">${k.m.suspended ? "suspended" : fmt(k.s.price, k.s.fmt)}</td><td class="m">${fmt(x.s.price, x.s.fmt)}${ld ? ` (line ${x.s.line})` : ""}</td><td class="m wr">${d > 0 ? "+" : ""}${d}</td></tr>`);
+  }
+  $("bt-rows").innerHTML = rows.join("");
+  $("bt-signals").textContent = `Verdict signals: ${(s.body.scraper?.signals || []).join(", ")}`;
+  $("bt-altered").textContent = total ? `${Math.round(100 * altered / total)}%` : "–";
+  $("bt-err").textContent = errN ? (errSum / errN).toFixed(1) : "–";
+  $("bt-susp").textContent = susp;
+}
+
+/* ---------- 4 tokens ---------- */
+async function tkBoard() { const r = await call("/api/board"); S.board = r.body; renderBoard($("tk-board"), r.body, { picked: S.quote?.quote.sel }); }
+$("tk-board").onclick = async (e) => {
+  const b = e.target.closest(".sel"); if (!b) return;
+  const r = await call("/api/quote", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ selection_id: b.dataset.id }) });
+  if (r.status !== 200) { $("tk-quote").innerHTML = `<span class="no">${esc(r.body.error)}</span>`; return; }
+  S.quote = r.body; $("tk-issue").textContent = us(r.fn);
+  const [p, sg] = r.body.token.split(".");
+  $("tk-quote").innerHTML = `<div class="kv"><div>selection</div><div>${esc(r.body.quote.sel)}</div><div>price</div><div>${fmt(r.body.quote.price, "american")}</div><div>price version</div><div>${r.body.quote.ver}</div><div>expires</div><div>${new Date(r.body.quote.exp * 1000).toLocaleTimeString()}</div></div><p class="muted" style="margin:10px 0 4px">Token = payload.signature</p><div class="token"><span class="pl">${esc(p)}</span>.<span class="sg">${esc(sg)}</span></div>`;
+  $("tk-valid").disabled = false; $("tk-tamper").disabled = false; $("tk-result").innerHTML = ""; tkBoard();
+};
+async function precheck(token, extra = {}) {
+  return call("/api/precheck", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ quote_token: token, stake: 40, segment: "casual", bettor: { sharp_score: 0.05, bets_last_10m: 1, avg_stake: 25 }, ...extra }) });
+}
+function decisionHtml(d) {
+  const label = { accept_fast: "ACCEPT · no delay", accept_standard: "ACCEPT · standard delay", trader_review: "TRADER REVIEW", reject: "REJECTED AT THE EDGE" }[d.decision] || d.decision;
+  return `<div class="decision d-${d.decision}">${label}</div>${(d.reasons || []).map(x => `<p class="no" style="margin:4px 0">${esc(x)}</p>`).join("")}<p class="muted" style="margin:4px 0 8px">${esc(d.route || "")}</p><table>${(d.checks || []).map(c => `<tr><td>${esc(c.check)}</td><td class="${c.pass ? "ok" : "no"}">${c.pass ? "pass" : "fail"}</td></tr>`).join("")}</table>`;
+}
+$("tk-valid").onclick = async () => { const r = await precheck(S.quote.token); $("tk-verify").textContent = us(r.fn); $("tk-result").innerHTML = decisionHtml(r.body); };
+$("tk-tamper").onclick = async () => {
+  const [p, sg] = S.quote.token.split(".");
+  const pl = JSON.parse(atob(p.replace(/-/g, "+").replace(/_/g, "/")));
+  pl.price = pl.price > 0 ? pl.price + 150 : pl.price + 60;
+  const forged = btoa(JSON.stringify(pl)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "") + "." + sg;
+  const r = await precheck(forged); $("tk-verify").textContent = us(r.fn);
+  $("tk-result").innerHTML = `<p class="muted" style="margin:10px 0 0">Client changed the price to ${fmt(pl.price, "american")} and kept the old signature.</p>` + decisionHtml(r.body);
+};
+
+/* ---------- 5 AI inference ---------- */
+const PROFILES = { rec: { sharp_score: 0.05, bets_last_10m: 1, avg_stake: 25 }, spike: { sharp_score: 0.15, bets_last_10m: 3, avg_stake: 25 }, sharp: { sharp_score: 0.85, bets_last_10m: 2, avg_stake: 400 } };
+async function aiEnter() {
+  if (!S.quote) {
+    const b = (await call("/api/board")).body; const live = Object.values(allSels(b)).find(x => x.e.status === "live" && x.e.kind === "game" && !x.m.suspended);
+    if (live) S.quote = (await call("/api/quote", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ selection_id: live.s.id }) })).body;
+  }
+  if (S.quote) $("ai-slip").textContent = `Slip: ${S.quote.quote.sel} at ${fmt(S.quote.quote.price, "american")} (quote expires ${new Date(S.quote.quote.exp * 1000).toLocaleTimeString()})`;
+}
+$("ai-go").onclick = async () => {
+  // Re-quote the same selection so the slip is scored at the current price.
+  const sel = S.quote?.quote.sel;
+  S.quote = null;
+  if (sel) { const q = await call("/api/quote", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ selection_id: sel }) }); if (q.status === 200) S.quote = q.body; }
+  if (!S.quote) await aiEnter();
+  $("ai-slip").textContent = `Slip: ${S.quote.quote.sel} at ${fmt(S.quote.quote.price, "american")}, quoted just now`;
+  const r = await precheck(S.quote.token, { stake: Number($("ai-stake").value), bettor: PROFILES[$("ai-prof").value] });
+  const d = r.body, rk = d.risk;
+  $("ai-result").innerHTML = decisionHtml(d) + (rk ? `<label style="margin-top:12px">Risk score <b style="font-family:var(--mono)">${rk.score.toFixed(3)}</b> · ${esc(rk.model)}</label><div class="bar"><i style="width:${Math.round(rk.score * 100)}%"></i><em style="left:${rk.thresholds.fast * 100}%"><span>fast</span></em><em style="left:${rk.thresholds.review * 100}%"><span>review</span></em></div><table><thead><tr><th>Feature</th><th>Value</th><th>Contribution</th></tr></thead><tbody>${rk.contributions.map(c => `<tr><td>${esc(c.feature)}</td><td class="m">${c.value.toFixed(2)}</td><td class="m">${c.contribution >= 0 ? "+" : ""}${c.contribution.toFixed(2)}</td></tr>`).join("")}</tbody></table>` : "");
+};
+$("ai-batch").onclick = async () => {
+  const r = await call("/api/simulate?n=1000"); const d = r.body, n = d.n;
+  const cols = { accept_fast: ["No delay", "#2FD27F"], accept_standard: ["Standard delay", "#B9C6CF"], trader_review: ["Trader review", "#F2B544"], reject: ["Rejected at edge", "#FF7A6B"] };
+  $("ai-batch-out").innerHTML = `<div class="mix">${Object.entries(cols).map(([k, [, c]]) => { const v = d.decisions[k] || 0; return v ? `<div style="flex:${v};background:${c}" title="${v} slips">${Math.round(100 * v / n)}%</div>` : ""; }).join("")}</div><div class="legend">${Object.entries(cols).map(([k, [l, c]]) => `<span><i style="background:${c}"></i>${l}: ${d.decisions[k] || 0}</span>`).join("")}</div><table style="margin-top:10px"><thead><tr><th>Profile</th><th>Outcome</th></tr></thead><tbody>${Object.entries(d.by_profile).map(([p, o]) => `<tr><td>${esc(p)}</td><td class="m">${Object.entries(o).map(([k, v]) => `${cols[k][0]} ${v}`).join(" · ")}</td></tr>`).join("")}</tbody></table><p class="muted">${n.toLocaleString()} slips scored in ${(d.total_us / 1000).toFixed(1)} ms inside one call.</p>`;
+  $("ai-us").textContent = `${d.us_per_slip} µs`; $("ai-fast").textContent = `${Math.round(100 * (d.decisions.accept_fast || 0) / n)}%`;
+  $("ai-review").textContent = `${Math.round(100 * (d.decisions.trader_review || 0) / n)}%`; $("ai-rej").textContent = `${Math.round(100 * (d.decisions.reject || 0) / n)}%`;
+};
+
+/* ---------- 6 full stack ---------- */
+async function fsEnter() {
+  if (!S.meta) S.meta = (await call("/api/meta")).body;
+  $("fs-routes").textContent = S.meta.routes.length;
+  $("fs-build").textContent = `${S.meta.build.time} · ${S.meta.build.git}`;
+  if (!$("fs-src").options.length) { $("fs-src").innerHTML = S.meta.sources.map(s => `<option>${esc(s)}</option>`).join(""); fsSrc(); }
+}
+async function fsSrc() { $("fs-code").textContent = (await call(`/src/${$("fs-src").value}`)).body; }
+$("fs-src").onchange = fsSrc;
+$("fs-go").onclick = async () => {
+  const code = S.meta.redirect_samples[0];
+  const q = (await call("/api/quote", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ selection_id: "nfl-kc-buf-ml-away" }) }));
+  const routes = [["GET /", "/"], ["GET /api/health", "/api/health"], ["GET /api/meta", "/api/meta"], [`GET /go/${code}`, `/api/redirect?path=/go/${code}&explain=1`], ["GET /api/board", "/api/board?segment=vip&fav=Lions"], ["GET /api/board (scraper)", "/api/board?view=scraper"], ["POST /api/quote", null, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ selection_id: "nfl-kc-buf-ml-away" }) }, "/api/quote"], ["POST /api/precheck", null, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ quote_token: q.body.token || "", stake: 40, segment: "casual", bettor: {} }) }, "/api/precheck"], ["GET /api/simulate?n=1000", "/api/simulate?n=1000"], ["GET /src/risk.rs", "/src/risk.rs"]];
+  const res = await Promise.all(routes.map(([, u, o, u2]) => call(u || u2, o)));
+  $("fs-rows").innerHTML = routes.map(([name], i) => `<tr><td class="m">${esc(name)}</td><td class="${res[i].status < 400 ? "ok" : "no"}">${res[i].status}</td><td class="m">${us(res[i].fn)}</td><td class="m">${Math.round(res[i].rtt)} ms</td></tr>`).join("");
+  $("fs-max").textContent = us(Math.max(...res.map(r => r.fn)));
+};
+
+/* ---------- 7 cold traffic ---------- */
+$("cs-go").onclick = async () => {
+  $("cs-go").disabled = true; const pts = [];
+  for (let i = 0; i < 50; i++) { const r = await call(`/api/health?cold=${Date.now()}-${i}`); pts.push(r); drawCold(pts); }
+  const rtts = pts.map(p => p.rtt).sort((a, b) => a - b), fns = pts.map(p => p.fn).sort((a, b) => a - b);
+  $("cs-fresh").textContent = `${Math.round(100 * pts.filter(p => p.seq === 1).length / pts.length)}%`;
+  $("cs-first").textContent = `${Math.round(pts[0].rtt)} ms`; $("cs-p50").textContent = `${Math.round(rtts[25])} ms`; $("cs-fn").textContent = us(fns[25]);
+  $("cs-go").disabled = false;
+};
+function drawCold(pts) {
+  const W = 1000, H = 220, pad = 34, max = Math.max(50, ...pts.map(p => p.rtt)) * 1.1, bw = (W - pad - 10) / 50;
+  let s = "";
+  for (let g = 0; g <= 4; g++) { const y = H - 20 - (H - 40) * g / 4; s += `<line x1="${pad}" x2="${W}" y1="${y}" y2="${y}" stroke="#26384A" stroke-width="1"/><text x="${pad - 6}" y="${y + 4}" text-anchor="end" fill="#7D8B96" font-size="11" font-family="ui-monospace, monospace">${Math.round(max * g / 4)}</text>`; }
+  pts.forEach((p, i) => { const h = (H - 40) * p.rtt / max, x = pad + 4 + i * bw; s += `<rect x="${x}" y="${H - 20 - h}" width="${bw - 3}" height="${h}" rx="2" fill="${p.seq === 1 ? "#2FD27F" : "#6FB7FF"}"><title>request ${i + 1}: ${Math.round(p.rtt)} ms round trip, ${p.fn} µs in Function, instance counter ${p.seq}</title></rect>`; });
+  s += `<text x="${pad}" y="${H - 4}" fill="#7D8B96" font-size="11" font-family="ui-monospace, monospace">ms, request 1 → 50 · green = brand-new instance</text>`;
+  $("cs-chart").innerHTML = s;
+}
+
+/* ---------- chapter lifecycle ---------- */
+let timer = null;
+function enter(i) {
+  clearInterval(timer); timer = null;
+  const fns = { 0: ovEnter, 1: rdEnter, 2: pzTick, 3: btTick, 4: tkBoard, 5: aiEnter, 6: fsEnter };
+  fns[i]?.();
+  if (i === 2) timer = setInterval(pzTick, 1000);
+  if (i === 3) timer = setInterval(btTick, 2000);
+}
+window.addEventListener("hashchange", () => { const i = Number(location.hash.slice(1)) || 0; if (i !== S.chapter) show(i); });
+show(Number(location.hash.slice(1)) || 0);
+</script>
+</body>
+</html>

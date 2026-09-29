@@ -1,0 +1,34 @@
+#:schema https://schemas.spinframework.dev/spin/manifest-v2/latest.json
+
+spin_manifest_version = 2
+
+[application]
+name = "edge-book"
+version = "0.2.0"
+description = "A sportsbook request path on Akamai Functions: redirects, personalization, bot misdirection, signed quotes and pre-trade risk scoring in one WebAssembly component"
+
+[variables]
+# Empty = synthetic book computed in the Function from the clock (no data tier).
+# Set to any HTTPS JSON endpoint in the same schema to swap the source:
+# KV, a message-bus gateway, a database API, object storage, a vendor feed.
+feed_url = { default = "" }
+# HMAC key for quote tokens. Always set a real value at deploy time:
+#   spin aka deploy --variable quote_signing_key=$(openssl rand -hex 32)
+quote_signing_key = { default = "dev-only-change-me", secret = true }
+
+[[trigger.http]]
+route = "/..."
+component = "edge-book"
+
+[component.edge-book]
+source = "target/wasm32-wasip1/release/edge_book.wasm"
+# Only hosts listed here can be called from the component. Add your feed's host.
+allowed_outbound_hosts = ["https://*.linodeobjects.com"]
+
+[component.edge-book.variables]
+feed_url = "{{ feed_url }}"
+quote_signing_key = "{{ quote_signing_key }}"
+
+[component.edge-book.build]
+command = "cargo build -p edge-book --target wasm32-wasip1 --release"
+watch = ["edge-book/src/**/*.rs", "edge-book/static/*", "edge-book/model/*", "edge-book/build.rs"]

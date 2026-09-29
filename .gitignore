@@ -1,0 +1,9 @@
+target/
+.spin/
+.spin-aka/
+*.har
+.env
+.DS_Store
+bench-results/*.raw
+.deploy-url
+bench-results/cold-2*.csv
